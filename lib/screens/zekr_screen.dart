@@ -26,6 +26,7 @@ class _ZekrScreenState extends State<ZekrScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final azkarData = Provider.of<Azkar>(context);
     return Scaffold(
       body: InkWell(
         onTap: () {
@@ -113,8 +114,7 @@ class _ZekrScreenState extends State<ZekrScreen> {
                       padding: const EdgeInsets.all(1),
                       textStyle: TextStyle(fontFamily: 'Changa', fontSize: 17),
                       duration: const Duration(milliseconds: 300),
-                      value: Hive.box('box').get('daily${widget.index}',
-                          defaultValue: 0), // pass in a value like 2014
+                      value: azkarData.getDailyCounter(widget.index), // pass in a value like 2014
                     ),
                   ),
                 ),
@@ -127,7 +127,7 @@ class _ZekrScreenState extends State<ZekrScreen> {
         onPressed: () {
           setState(() {
             currentCounter = 0;
-            Hive.box('box').put('current${widget.index}', currentCounter);
+            azkarData.setCurrentCounter(widget.index, currentCounter);
           });
         },
         child: const Icon(Icons.refresh),

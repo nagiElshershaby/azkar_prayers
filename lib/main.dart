@@ -1,3 +1,4 @@
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:azkar_prayers/providers/azkar.dart';
 import 'package:azkar_prayers/screens/zekr_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +19,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    Azkar azkar = Azkar();
+    azkar.resetIfDayChanged();
     return ChangeNotifierProvider(
-      create: (_) => Azkar(),
+      create: (_) => azkar,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
@@ -35,16 +38,34 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+
+  @override
+  void initState() {
+    resetIfDayChanged();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final azkarData = Provider.of<Azkar>(context);
+    azkarData.resetIfDayChanged();
     return Scaffold(
       appBar: AppBar(
+        title: SizedBox(
+          width: MediaQuery.sizeOf(context).width *0.4,
+          child: myCard(azkarData.getTotalDaily()),
+        ),
         actions: [
           Text(
-            'أذكار',
+            'عداد الأذكار',
             style: TextStyle(
               fontFamily: 'Changa',
               fontSize: 30,
@@ -58,22 +79,32 @@ class MyHomePage extends StatelessWidget {
         itemCount: Azkar.azkar.length - 1,
         itemBuilder: (context, index) => Wrap(
           children: [
-            ListTile(
-              trailing: Text(
-                Azkar.azkar[index],
-                textAlign: TextAlign.end,
-                style: Theme.of(context).textTheme.titleLarge,
-                overflow: TextOverflow.fade,
-              ),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ZekrScreen(
-                      index,
-                    ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+              child: ListTile(
+                title: SizedBox(
+                  width: MediaQuery.sizeOf(context).width *0.2,
+                  child: myCard(azkarData.getDailyCounter(index)),
+                ),
+                trailing: SizedBox(
+                  width: MediaQuery.sizeOf(context).width *0.6,
+                  child: Text(
+                    Azkar.azkar[index],
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.titleLarge,
+                    overflow: TextOverflow.fade,
                   ),
-                );
-              },
+                ),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ZekrScreen(
+                        index,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
             const Divider(),
           ],
@@ -81,5 +112,49 @@ class MyHomePage extends StatelessWidget {
       ),
     );
   }
-}
 
+  Widget myCard(int value){
+    return Card(
+      margin: const EdgeInsets.all(0),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: AnimatedFlipCounter(
+          prefix: ' مرة اليوم ',
+          padding: const EdgeInsets.all(1),
+          textStyle: TextStyle(fontFamily: 'Changa', fontSize: 12,overflow: TextOverflow.fade,),
+          duration: const Duration(milliseconds: 300),
+          value: value, // pass in a value like 2014
+        ),
+      ),
+    );
+  }
+
+  void reset () {
+    for (int i = 0; i < 16; i++) {
+      Hive.box('box').put('current$i', 0);
+      Hive.box('box').put('daily$i', 0);
+    }
+    Hive.box('box').put('daily', 0);
+  }
+  void resetIfDayChanged() {
+    if(didDayDateChange()) {
+      reset();
+    }
+  }
+  bool didDayDateChange() {
+    if (!Hive.box('box').containsKey('dayDate')) {
+      Hive.box('box').put('dayDate', DateTime.now());
+      return true;
+    }
+    var date = DateTime.now();
+    final savedDate = Hive.box('box').get('dayDate');
+
+    if (date.day != savedDate.day ||
+        date.month != savedDate.month ||
+        date.year != savedDate.year) {
+      Hive.box('box').put('dayDate', DateTime.now());
+      return true;
+    }
+    return false;
+  }
+}
