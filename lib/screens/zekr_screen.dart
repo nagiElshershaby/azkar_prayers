@@ -18,7 +18,6 @@ class _ZekrScreenState extends State<ZekrScreen> {
   late int currentCounter;
   @override
   void initState() {
-    // TODO: implement initState
     currentCounter =
         Hive.box('box').get('current${widget.index}', defaultValue: 0);
     super.initState();
