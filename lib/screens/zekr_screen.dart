@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/azkar.dart';
+import '../providers/azkar_provider.dart';
 
 class ZekrScreen extends StatefulWidget {
   final int index;
@@ -25,12 +25,12 @@ class _ZekrScreenState extends State<ZekrScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final azkarData = Provider.of<Azkar>(context);
+    final azkarData = Provider.of<AzkarProvider>(context);
     return Scaffold(
       body: InkWell(
         onTap: () {
           currentCounter++;
-          Provider.of<Azkar>(context, listen: false)
+          Provider.of<AzkarProvider>(context, listen: false)
               .increaseCounter(currentCounter, widget.index);
           setState(() {});
         },
@@ -45,11 +45,11 @@ class _ZekrScreenState extends State<ZekrScreen> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        Azkar.azkar[widget
+                        azkarData.azkar[widget
                             .index], // Replace myList with your actual list of strings
                         style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontSize:
-                            Azkar.azkar[widget.index].toString().length < 30
+                            azkarData.azkar[widget.index].toString().length < 30
                                 ? 40
                                 : 30),
                         textAlign: TextAlign.center,
@@ -69,7 +69,7 @@ class _ZekrScreenState extends State<ZekrScreen> {
                             color: Theme.of(context)
                                 .colorScheme
                                 .primary
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                             width: 3),
                       ),
                       child: currentCounter == 0
@@ -84,7 +84,7 @@ class _ZekrScreenState extends State<ZekrScreen> {
                             color: Theme.of(context)
                                 .colorScheme
                                 .primary
-                                .withOpacity(0.8),
+                                .withValues(alpha: 0.8),
                           ),
                           textAlign: TextAlign.center,
                         ),
